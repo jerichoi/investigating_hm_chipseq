@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+.Python
+env/
+venv/
+.venv/
+*.ipynb_checkpoints
+.ipynb_checkpoints/
+
+# Jupyter
+.jupyter/
+
+# Conda / environment files (keep the export, ignore local env dirs)
+.conda/
+
+# Genomic / large data files — regenerate or fetch separately, don't version
+data/
+*.bed
+*.bed.gz
+*.bam
+*.bai
+*.fastq
+*.fastq.gz
+*.fa
+*.fa.fai
+*.fasta
+*.vcf
+*.vcf.gz
+*.bigwig
+*.bw
+
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+*.png
+
