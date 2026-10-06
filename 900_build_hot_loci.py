@@ -32,11 +32,12 @@ import shutil
 import requests
 import pybedtools
 import pandas as pd
+import time
 
 # ---------------------------------------------------------------------------
 # Configuration - edit this block per run
 # ---------------------------------------------------------------------------
-CELL_LINES = ["K562", "HepG2", "A549"]
+CELL_LINES = ["HepG2"]
 HISTONE_MARKS = ["H3K27me3", "H3K9me3", "H3K4me3", "H3K27ac"]
 
 ASSEMBLY = "GRCh38"
@@ -114,11 +115,30 @@ def fetch_experiments(cell_line, assay_title, extra_params=None):
     return r.json()["@graph"]
 
 
-def fetch_experiment_detail(experiment_id):
-    r = requests.get(ENCODE_EXPERIMENT_URL.format(experiment_id), headers=HEADERS)
-    r.raise_for_status()
-    return r.json()
-
+def fetch_experiment_detail(experiment_id, max_retries=5, base_delay=2):
+    url = f"https://www.encodeproject.org/experiments/{experiment_id}/?format=json"
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        except (requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.HTTPError) as e:
+            is_retryable_http_error = (
+                isinstance(e, requests.exceptions.HTTPError)
+                and e.response is not None
+                and e.response.status_code in (502, 503, 504)
+            )
+            is_timeout_or_conn = isinstance(e, (requests.exceptions.Timeout,
+                                                 requests.exceptions.ConnectionError))
+            if (is_retryable_http_error or is_timeout_or_conn) and attempt < max_retries - 1:
+                wait = base_delay * (2 ** attempt)
+                print(f"  {type(e).__name__} on {experiment_id}, retrying in {wait}s "
+                      f"(attempt {attempt+1}/{max_retries})")
+                time.sleep(wait)
+                continue
+            raise
 
 def get_target_name(experiment_data):
     return experiment_data.get("target", {}).get("label", "unknown")
