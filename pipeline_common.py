@@ -26,7 +26,7 @@ import re
 import time
 import requests
 
-CELL_LINES = ["A549"]
+CELL_LINES = ["K562"]
 HISTONE_MARKS = ["H3K27me3", "H3K9me3", "H3K4me3", "H3K27ac"]
 
 ASSEMBLY = "GRCh38"
