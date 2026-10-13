@@ -1,11 +1,14 @@
 library(rtracklayer)
 library(ChIPRegions)
 
+script_dir <- tryCatch(dirname(normalizePath(sys.frame(1)$ofile, winslash = "/")),
+                       error = function(e) tryCatch(dirname(rstudioapi::getSourceEditorContext()$path),
+                                                    error = function(e) getwd()))
+root <- normalizePath(file.path(script_dir, ".."), winslash = "/")   # parent folder, which holds data/
+
 mark <- "H3K27me3"
-root <- "/Users/echo/Documents/University/honours/201_histone modification_analysis"
 meta <- read.csv(file.path(root, "data/histone_manifests/histone_experiments_A549.csv"))
 meta <- meta[meta$mark == mark, ][1:2, ]
-
 Bedlist <- lapply(file.path(root, meta$fname), import, format = "narrowPeak")
 
 UnifiedSequence <- Unify(Bedlist)
@@ -24,8 +27,8 @@ SperUn <- apply(Rho[rownames(Rho) %in% c("TRUE FALSE", "FALSE TRUE"), , drop = F
 WhichState <- which.max(SperUn)
 BiasedRegions <- ContiguousRegions[ContiguousRegions$State == WhichState]
 
-export(BiasedRegions, paste0(mark, "_biased_regions.bed"))
-export(ContiguousRegions, paste0(mark, "_all_regions.bed"))
+export(BiasedRegions, file.path(script_dir, paste0(mark, "_biased_regions.bed")))
+export(ContiguousRegions, file.path(script_dir, paste0(mark, "_all_regions.bed")))
 
 cat("Best K:", BestK, "\n")
 cat("Share of each state's peaks found by only one experiment:\n"); print(round(SperUn, 3))
